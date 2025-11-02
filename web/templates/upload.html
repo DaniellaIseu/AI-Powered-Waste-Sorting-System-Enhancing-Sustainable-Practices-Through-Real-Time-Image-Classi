@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Waste Image - Waste Sorter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="text-2xl">♻️</div>
+                    <span class="font-bold text-xl text-gray-800">Waste Sorter</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('dashboard') }}" 
+                       class="text-gray-700 hover:text-gray-900 transition duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('logout') }}" 
+                       class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto py-8 px-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">📸 Upload Waste Image</h1>
+            <p class="text-lg text-gray-600">Upload an image of waste to get AI-powered classification</p>
+        </div>
+
+        <!-- Results Display -->
+        {% if result %}
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h3 class="text-2xl font-semibold mb-6 text-center">Classification Results</h3>
+            
+            <!-- Image Preview -->
+            <div class="mb-6 flex justify-center">
+                <img src="{{ url_for('static', filename=image_path.split('static/')[1]) }}" 
+                     alt="Uploaded waste" 
+                     class="max-w-full h-64 object-contain rounded-lg border-2 border-gray-200">
+            </div>
+            
+            <!-- Result Card -->
+            <div class="text-center">
+                <div class="text-5xl mb-4">
+                    {% if result.class == 'plastic' %}🧴
+                    {% elif result.class == 'paper' %}📄
+                    {% elif result.class == 'metal' %}🔩
+                    {% elif result.class == 'glass' %}🍾
+                    {% elif result.class == 'cardboard' %}📦
+                    {% else %}🗑️
+                    {% endif %}
+                </div>
+                <h4 class="text-2xl font-semibold text-gray-800 mb-2 capitalize">{{ result.class }}</h4>
+                <p class="text-gray-600 mb-6">Confidence: {{ result.confidence }}%</p>
+                
+                {% if result.class in ['plastic', 'paper', 'metal', 'glass', 'cardboard'] %}
+                <div class="bg-green-100 text-green-800 px-6 py-4 rounded-lg inline-block">
+                    <i class="fas fa-recycle mr-2"></i>Recyclable - Place in recycling bin
+                </div>
+                {% else %}
+                <div class="bg-orange-100 text-orange-800 px-6 py-4 rounded-lg inline-block">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Check Local Guidelines
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-8 text-center">
+                <a href="{{ url_for('dashboard') }}" 
+                   class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg transition duration-200 inline-block">
+                    <i class="fas fa-home mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+        {% else %}
+
+        <!-- Upload Form -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <form id="uploadForm" enctype="multipart/form-data" action="{{ url_for('upload') }}" method="POST" class="space-y-6">
+                <!-- File Upload Area -->
+                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 transition duration-200">
+                    <div class="text-4xl text-gray-400 mb-4">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <p class="text-lg text-gray-600 mb-4">Drag and drop your image here, or click to browse</p>
+                    <input type="file" id="imageInput" name="image" accept="image/*" class="hidden" required>
+                    <button type="button" onclick="document.getElementById('imageInput').click()" 
+                            class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition duration-200">
+                        <i class="fas fa-folder-open mr-2"></i>Choose Image
+                    </button>
+                </div>
+
+                <!-- Image Preview -->
+                <div id="imagePreview" class="hidden">
+                    <h3 class="text-lg font-semibold mb-4">Image Preview:</h3>
+                    <img id="previewImg" class="max-w-full h-64 object-contain rounded-lg border" alt="Preview">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" id="submitBtn" 
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-magic mr-2"></i>Classify Waste
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Instructions -->
+        <div class="mt-8 bg-blue-50 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3">📋 Instructions:</h3>
+            <ul class="text-blue-700 space-y-2">
+                <li>• Upload clear images of waste items</li>
+                <li>• Supported formats: JPG, PNG, GIF</li>
+                <li>• Maximum file size: 10MB</li>
+                <li>• Ensure good lighting for better accuracy</li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not result %}
+    <script>
+        // File input handling
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Form submission
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Classifying...';
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
+
