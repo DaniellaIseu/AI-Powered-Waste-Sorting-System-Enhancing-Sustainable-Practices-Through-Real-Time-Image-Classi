@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco Stats - Waste Sorter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="text-2xl">🌍</div>
+                    <span class="font-bold text-xl text-gray-800">Eco Stats</span>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="text-gray-700 hover:text-gray-900">Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-8 px-4">
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h1 class="text-2xl font-bold mb-2">Hi {{ user }}, here's your environmental impact 🌿</h1>
+            <p class="text-gray-600">These metrics estimate the positive outcomes of your recycling activity.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-emerald-50 p-6 rounded-xl shadow">
+                <div class="text-3xl mb-2">🫧</div>
+                <div class="text-3xl font-bold text-emerald-700">{{ eco.co2_saved_kg }} kg</div>
+                <div class="text-gray-600">CO₂ Saved</div>
+            </div>
+            <div class="bg-amber-50 p-6 rounded-xl shadow">
+                <div class="text-3xl mb-2">🗑️</div>
+                <div class="text-3xl font-bold text-amber-700">{{ eco.landfill_diverted_kg }} kg</div>
+                <div class="text-gray-600">Landfill Diverted</div>
+            </div>
+            <div class="bg-sky-50 p-6 rounded-xl shadow">
+                <div class="text-3xl mb-2">💧</div>
+                <div class="text-3xl font-bold text-sky-700">{{ eco.water_saved_l }} L</div>
+                <div class="text-gray-600">Water Saved</div>
+            </div>
+            <div class="bg-violet-50 p-6 rounded-xl shadow">
+                <div class="text-3xl mb-2">⚡</div>
+                <div class="text-3xl font-bold text-violet-700">{{ eco.energy_saved_kwh }} kWh</div>
+                <div class="text-gray-600">Energy Saved</div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">How these are calculated</h2>
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>After model integration, each classification contributes to material-specific multipliers.</li>
+                <li>We'll estimate CO₂ and energy savings using standard recycling datasets.</li>
+                <li>Values currently default to 0 as placeholders.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+

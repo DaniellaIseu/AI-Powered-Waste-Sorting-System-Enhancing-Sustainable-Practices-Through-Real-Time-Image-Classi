@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Waste Sorter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="text-2xl">♻️</div>
+                    <span class="font-bold text-xl text-gray-800">Waste Sorter</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-3">
+                        {% if picture %}
+                        <img src="{{ picture }}" alt="Profile" class="w-8 h-8 rounded-full">
+                        {% endif %}
+                        <span class="text-gray-700">Hello, {{ user }}!</span>
+                    </div>
+                    <a href="{{ url_for('logout') }}" 
+                       class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-8 px-4">
+        <!-- Welcome Card -->
+        <div class="bg-gradient-to-r from-green-400 to-blue-500 rounded-2xl p-8 text-white mb-8">
+            <h1 class="text-3xl font-bold mb-2">Welcome to Waste Sorter! 🌱</h1>
+            <p class="text-lg opacity-90">Ready to make a sustainable impact through smart waste classification</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <a href="{{ url_for('upload') }}" 
+               class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition duration-200 border-l-4 border-green-500">
+                <div class="text-3xl text-green-500 mb-4">📸</div>
+                <h3 class="font-semibold text-lg mb-2">Classify Waste</h3>
+                <p class="text-gray-600">Upload images for AI-powered waste identification</p>
+            </a>
+
+            <a href="{{ url_for('stats') }}" 
+               class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500 hover:shadow-xl transition duration-200 block">
+                <div class="text-3xl text-blue-500 mb-4">📊</div>
+                <h3 class="font-semibold text-lg mb-2">Your Impact</h3>
+                <p class="text-gray-600">Track your recycling contributions</p>
+            </a>
+
+            <a href="{{ url_for('eco_stats') }}" 
+               class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-orange-500 hover:shadow-xl transition duration-200 block">
+                <div class="text-3xl text-orange-500 mb-4">🌍</div>
+                <h3 class="font-semibold text-lg mb-2">Eco Stats</h3>
+                <p class="text-gray-600">View environmental analytics</p>
+            </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Quick Stats</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600">0</div>
+                    <div class="text-sm text-gray-600">Items Classified</div>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-600">0%</div>
+                    <div class="text-sm text-gray-600">Recycling Rate</div>
+                </div>
+                <div class="text-center p-4 bg-orange-50 rounded-lg">
+                    <div class="text-2xl font-bold text-orange-600">0</div>
+                    <div class="text-sm text-gray-600">Plastic Items</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-600">0</div>
+                    <div class="text-sm text-gray-600">Organic Items</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
