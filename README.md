@@ -3,171 +3,94 @@
 
 
 
-♻️ AI-Powered Waste Sorting System
-🎯 Project Overview
-An intelligent waste classification system that uses Computer Vision and Deep Learning to automatically sort waste materials in real-time. Designed specifically for small shops and local markets in Kenya, promoting sustainable waste management practices through AI-powered automation and educational feedback.
+# 🌍 Smart Waste Classifier
 
-✨ Key Features
-🤖 AI-Powered Classification: Real-time waste detection using Convolutional Neural Networks (CNN)
+## 📘 Overview
+The **Smart Waste Classifier** is an AI-powered application that automatically classifies waste materials (plastic, metal, paper, glass, organic, etc.) using computer vision.  
+It consists of:
+- A **Web App** for uploading and classifying waste images.
+- A **Mobile App** (Jetpack Compose) for real-time image capture and classification.
+- An **Admin Dashboard** for monitoring system statistics and user performance.
 
-📱 Mobile-First Design: Accessible via web browser on any smartphone
+---
 
-🌍 Kenyan Context: Trained on local waste types and market environments
+## 🎯 Objectives
+- Train a CNN-based image classification model for waste recognition.
+- Enable real-time camera-based waste detection in the mobile app.
+- Provide an admin dashboard to visualize classification metrics.
+- Promote environmental sustainability through technology.
 
-♻️ Eco-Feedback: Instant recycling instructions and environmental education
+---
 
-📊 User Analytics: Track recycling habits and environmental impact
+## 🧠 AI Model
+- **Base Model:** MobileNetV2 (transfer learning)
+- **Framework:** TensorFlow / Keras
+- **Accuracy Achieved:** 75.55% (fine-tuning phase ongoing)
+- **Classes:** Plastic, Paper, Metal, Organic, Glass, Trash
 
-🔒 User Authentication: Secure login and personalized dashboard
+---
 
-🛠️ Technology Stack
-Backend & AI
-Python 3.8+ - Core programming language
+## 🖥️ Web App Features
+- Upload waste images for classification.
+- Display top prediction and confidence level.
+- Admin dashboard showing classification metrics.
+- Built using **Flask + TensorFlow + HTML/CSS/JS**.
 
-TensorFlow/Keras - Deep learning framework
+---
 
-Flask - Web application framework
+## 📱 Mobile App Features
+- Built with **Jetpack Compose** (Android).
+- Integrates **CameraX** for image capture.
+- Displays classification results on screen.
+- Includes navigation bar and admin interface.
 
-OpenCV - Image processing
+---
 
-MobileNetV2 - Lightweight CNN architecture
+## ⚙️ Tech Stack
+| Layer | Technology |
+|-------|-------------|
+| **Frontend** | Jetpack Compose (Mobile), HTML/CSS (Web) |
+| **Backend** | Flask (Python) |
+| **ML Model** | TensorFlow / Keras |
+| **Database** | Firebase / SQLite |
+| **Deployment** | Azure / Localhost |
+| **Version Control** | Git & GitHub |
 
-Frontend
-HTML5/CSS3 - Responsive web interface
+---
 
-JavaScript - Interactive features
+## 🧩 Installation & Setup
+### 🔹 Web App
+1. Clone repository:
+   ```bash
+   git clone https://github.com/yourusername/waste-classifier.git
+   cd waste-classifier/web
+2. Install dependencies:
 
-Bootstrap - Mobile-first design
-
-Data & Deployment
-TrashNet Dataset - Base training data
-
-Custom Kenyan Dataset - Local waste images
-
-TensorFlow Lite - Optimized for mobile deployment
-
-🚀 Quick Start
-Prerequisites
-bash
-Python 3.8+
-TensorFlow 2.0+
-Flask
-Pillow
-NumPy
-Installation & Running
-Clone the repository
-
-bash
-git clone https://github.com/DaniellaIseu/AI-Powered-Waste-Sorting-System.git
-cd AI-Powered-Waste-Sorting-System
-Install dependencies
-
-bash
 pip install -r requirements.txt
-Run the application
 
-bash
-cd web_app
+
+3. Run server:
+
 python app.py
-Access the application
 
-Local: http://localhost:5000
+🔹 Mobile App
 
-Network: http://[YOUR-IP]:5000 (for mobile testing)
+Open the mobile/ folder in Android Studio.
 
-📁 Project Structure
-text
-AI-Powered-Waste-Sorting-System/
-├── ai_model/                 # AI Training & Model Development
-│   ├── train.py             # Model training script
-│   ├── waste_classifier.h5  # Trained model
-│   └── data/                # Training datasets
-├── web_app/                 # Web Application
-│   ├── app.py              # Flask application
-│   ├── templates/          # HTML templates
-│   ├── static/             # CSS/JS assets
-│   └── uploads/            # User uploads directory
-└── documentation/          # Project documentation
-🎓 Research Objectives
-Identify common waste types in Kenyan small shops and markets
+Build the project and run on an emulator or device.
 
-Train a lightweight image classification model for real-time detection
+Ensure the ML model is exported as .tflite and integrated into assets/.
 
-Implement an offline-capable system for low-infrastructure environments
+📈 Future Improvements
 
-Incorporate educational feedback mechanisms for behavior change
+Increase model accuracy to 90%+ through fine-tuning and dataset expansion.
 
-Evaluate system usability, accuracy, and behavioral impact
+Implement real-time video classification.
 
-🌱 Environmental Impact
-This project supports UN Sustainable Development Goal 12 (Responsible Consumption and Production) by:
+Add cloud synchronization for user data.
 
-♻️ Increasing recycling rates through automated sorting
+Enable notifications for sustainable waste management tips.
 
-📚 Educating users about proper waste disposal
+👩‍💻 Contributors
 
-🌍 Reducing environmental pollution in urban areas
-
-💡 Promoting sustainable practices in informal economies
-
-🔬 Technical Implementation
-Model Architecture
-Base Model: MobileNetV2 (pre-trained on ImageNet)
-
-Transfer Learning: Fine-tuned on waste classification task
-
-Optimization: TensorFlow Lite for mobile deployment
-
-Accuracy: >85% validation accuracy on combined datasets
-
-Data Pipeline
-Data Collection: TrashNet + Custom Kenyan waste images
-
-Preprocessing: Image augmentation, normalization, resizing
-
-Training: Transfer learning with aggressive data augmentation
-
-Validation: 80-20 split with cross-validation
-
-📊 Performance Metrics
-Classification Accuracy: 85%+
-
-Inference Time: <3 seconds
-
-Model Size: <10MB (optimized for mobile)
-
-Offline Capability: Full functionality without internet
-
-👥 Target Users
-Small Shop Owners in urban and peri-urban areas
-
-Local Market Vendors in informal settlements
-
-Waste Management Companies for sorting facilities
-
-Environmental NGOs for awareness campaigns
-
-🎯 Future Enhancements
-Mobile app development (Flutter/React Native)
-
-Multi-language support (Swahili, Local dialects)
-
-Gamification features for user engagement
-
-Integration with recycling collection services
-
-Real-time camera processing on mobile devices
-
-🙏 Acknowledgments
-Strathmore University - Academic supervision and support
-
-TrashNet Dataset - Base training data
-
-Google TensorFlow Team - Open-source AI tools
-
-UN Environment Programme - Waste management research
-
-
-GitHub: @DaniellaIseu
-
-Project Link: https://github.com/DaniellaIseu/AI-Powered-Waste-Sorting-System
+Daniella Iseu – Project Lead, ML Model & App Development
