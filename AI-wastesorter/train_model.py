@@ -5,6 +5,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 import numpy as np
 import os
+from pathlib import Path
 import matplotlib.pyplot as plt
 
 print("TensorFlow version:", tf.__version__)
@@ -14,6 +15,16 @@ IMG_HEIGHT, IMG_WIDTH = 224, 224
 BATCH_SIZE = 32
 NUM_EPOCHS = 20
 DATA_PATH = "dataset/Trashnet dataset"
+
+# Model output paths - save to ml/ directory for web app to use
+BASE_DIR = Path(__file__).parent.parent
+ML_DIR = BASE_DIR / 'ml'
+ML_DIR.mkdir(parents=True, exist_ok=True)
+
+FINAL_MODEL_PATH = ML_DIR / 'final_waste_classifier.keras'
+BEST_MODEL_PATH = BASE_DIR / 'AI-wastesorter' / 'best_model.h5'
+TFLITE_MODEL_PATH = BASE_DIR / 'AI-wastesorter' / 'waste_classifier.tflite'
+HISTORY_PLOT_PATH = BASE_DIR / 'AI-wastesorter' / 'training_history.png'
 
 # Check if data path exists
 if not os.path.exists(DATA_PATH):
@@ -101,7 +112,7 @@ model.summary()
 
 # Callbacks for better training
 checkpoint = ModelCheckpoint(
-    'best_model.h5',
+    str(BEST_MODEL_PATH),
     monitor='val_accuracy',
     save_best_only=True,
     mode='max',
@@ -126,7 +137,7 @@ history = model.fit(
 )
 
 # Load the best model saved during training
-model.load_weights('best_model.h5')
+model.load_weights(str(BEST_MODEL_PATH))
 
 # Evaluate the final model
 print("Evaluating the model...")
@@ -157,22 +168,36 @@ def plot_training_history(history):
     ax2.legend()
     
     plt.tight_layout()
-    plt.savefig('training_history.png')
+    plt.savefig(str(HISTORY_PLOT_PATH))
     plt.show()
 
 plot_training_history(history)
 
-# Save the final model
-model.save('waste_classifier.h5')
-print("Model saved as 'waste_classifier.h5'")
+# Save the final model to ml/ directory for web app to use
+print(f"\nSaving final model to {FINAL_MODEL_PATH}...")
+model.save(str(FINAL_MODEL_PATH))
+print(f"✓ Model saved as '{FINAL_MODEL_PATH}'")
+
+# Also save as .h5 in the AI-wastesorter directory for backup
+backup_h5_path = BASE_DIR / 'AI-wastesorter' / 'waste_classifier.h5'
+model.save(str(backup_h5_path))
+print(f"✓ Backup model saved as '{backup_h5_path}'")
 
 # Convert to TensorFlow Lite for mobile deployment
+print(f"\nConverting to TensorFlow Lite...")
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
 tflite_model = converter.convert()
 
-with open('waste_classifier.tflite', 'wb') as f:
+with open(str(TFLITE_MODEL_PATH), 'wb') as f:
     f.write(tflite_model)
-print("TensorFlow Lite model saved as 'waste_classifier.tflite'")
+print(f"✓ TensorFlow Lite model saved as '{TFLITE_MODEL_PATH}'")
 
+print("\n" + "="*60)
 print("Training completed successfully!")
+print("="*60)
+print(f"✓ Final model saved to: {FINAL_MODEL_PATH}")
+print(f"✓ Backup .h5 model: {backup_h5_path}")
+print(f"✓ TensorFlow Lite model: {TFLITE_MODEL_PATH}")
+print(f"✓ Training history plot: {HISTORY_PLOT_PATH}")
+print("\nThe web app will now use the model from the ml/ directory!")
 print("Next step: Integrate the .tflite model into your Flutter app!")

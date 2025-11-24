@@ -50,19 +50,17 @@
                 <p class="text-gray-600">Upload images for AI-powered waste identification</p>
             </a>
 
-            <a href="{{ url_for('stats') }}" 
-               class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500 hover:shadow-xl transition duration-200 block">
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500">
                 <div class="text-3xl text-blue-500 mb-4">📊</div>
                 <h3 class="font-semibold text-lg mb-2">Your Impact</h3>
-                <p class="text-gray-600">Track your recycling contributions</p>
-            </a>
+                <p class="text-gray-600">{{ metrics.recyclables }} recyclable items • {{ metrics.recycling_rate }}% rate</p>
+            </div>
 
-            <a href="{{ url_for('eco_stats') }}" 
-               class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-orange-500 hover:shadow-xl transition duration-200 block">
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-orange-500">
                 <div class="text-3xl text-orange-500 mb-4">🌍</div>
                 <h3 class="font-semibold text-lg mb-2">Eco Stats</h3>
-                <p class="text-gray-600">View environmental analytics</p>
-            </a>
+                <p class="text-gray-600">CO₂ saved: {{ metrics.eco_impact.co2_saved_kg }} kg • Energy: {{ metrics.eco_impact.energy_saved_kwh }} kWh</p>
+            </div>
         </div>
 
         <!-- Stats -->
@@ -70,22 +68,35 @@
             <h2 class="text-xl font-semibold mb-4">Quick Stats</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="text-center p-4 bg-green-50 rounded-lg">
-                    <div class="text-2xl font-bold text-green-600">0</div>
+                    <div class="text-2xl font-bold text-green-600">{{ stats.total_items }}</div>
                     <div class="text-sm text-gray-600">Items Classified</div>
                 </div>
                 <div class="text-center p-4 bg-blue-50 rounded-lg">
-                    <div class="text-2xl font-bold text-blue-600">0%</div>
-                    <div class="text-sm text-gray-600">Recycling Rate</div>
+                    <div class="text-2xl font-bold text-blue-600">{{ metrics.recyclables }}</div>
+                    <div class="text-sm text-gray-600">Recyclables (Plastic/Metal/Glass)</div>
                 </div>
                 <div class="text-center p-4 bg-orange-50 rounded-lg">
-                    <div class="text-2xl font-bold text-orange-600">0</div>
+                    <div class="text-2xl font-bold text-orange-600">{{ stats.categories.plastic }}</div>
                     <div class="text-sm text-gray-600">Plastic Items</div>
                 </div>
                 <div class="text-center p-4 bg-purple-50 rounded-lg">
-                    <div class="text-2xl font-bold text-purple-600">0</div>
+                    <div class="text-2xl font-bold text-purple-600">{{ stats.categories.organic }}</div>
                     <div class="text-sm text-gray-600">Organic Items</div>
                 </div>
             </div>
+            {% if stats.recent %}
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-3">Latest Activity</h3>
+                <ul class="divide-y divide-gray-200">
+                    {% for item in stats.recent[:5] %}
+                    <li class="py-3 flex items-center justify-between">
+                        <span class="capitalize text-gray-800">{{ item.label }}</span>
+                        <span class="text-sm text-gray-500">{{ item.confidence }} • {{ item.timestamp }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
         </div>
     </div>
 </body>
