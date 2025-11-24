@@ -1,119 +1,130 @@
-# Authentication Setup Guide
+# 🔐 Auth0 Authentication - Waste Sorter (Web)
 
-This application uses Auth0 for user authentication. Follow these steps to set up authentication.
+The web dashboard relies exclusively on **Auth0** for authentication. There is no local username/password database, Firebase dependency, or hybrid flow – everything delegates to Auth0’s hosted login page.
 
-## Prerequisites
+## 🚀 Quick Start
 
-- An Auth0 account (sign up at [auth0.com](https://auth0.com))
-- Python environment with Flask installed
-
-## Setup Steps
-
-### 1. Create Auth0 Application
-
-1. Log in to your [Auth0 Dashboard](https://manage.auth0.com)
-2. Navigate to **Applications** → **Applications**
-3. Click **Create Application**
-4. Choose **Regular Web Applications** as the application type
-5. Click **Create**
-
-### 2. Configure Auth0 Application
-
-In your Auth0 application settings:
-
-1. **Allowed Callback URLs**: Add your callback URL
-   - Development: `http://localhost:5000/callback`
-   - Production: `https://yourdomain.com/callback`
-
-2. **Allowed Logout URLs**: Add your logout URL
-   - Development: `http://localhost:5000/`
-   - Production: `https://yourdomain.com/`
-
-3. **Allowed Web Origins**: Add your application URL
-   - Development: `http://localhost:5000`
-   - Production: `https://yourdomain.com`
-
-4. Click **Save Changes**
-
-### 3. Get Auth0 Credentials
-
-From your Auth0 application page, copy:
-- **Domain** (e.g., `dev-example.us.auth0.com`)
-- **Client ID**
-- **Client Secret**
-
-### 4. Configure Environment Variables
-
-1. Copy `env_template.txt` to `.env` in the web folder
-2. Fill in your Auth0 credentials:
-   ```
-   AUTH0_DOMAIN=your-auth0-domain.us.auth0.com
-   AUTH0_CLIENT_ID=your-auth0-client-id
-   AUTH0_CLIENT_SECRET=your-auth0-client-secret
-   SECRET_KEY=your-generated-secret-key
-   ```
-
-3. Generate a secure SECRET_KEY:
+1. **Install dependencies**
    ```bash
-   python -c "import secrets; print(secrets.token_hex(32))"
+   cd web
+   pip install -r requirements.txt
    ```
 
-### 5. Install Dependencies
+2. **Create a `.env` file**
+   ```bash
+   cp env_template.txt .env
+   ```
+   Fill in the Auth0 values from your Auth0 tenant:
+   ```ini
+   AUTH0_DOMAIN=your-domain.auth0.com
+   AUTH0_CLIENT_ID=your-client-id
+   AUTH0_CLIENT_SECRET=your-client-secret
+   SECRET_KEY=your-secure-flask-secret
+   ```
 
-```bash
-pip install -r requirements.txt
-```
+3. **Run the Flask app**
+   ```bash
+   python app.py
+   ```
 
-### 6. Run the Application
+4. **Login flow**
+   - User hits `http://localhost:5000`
+   - Clicks the “Continue with Auth0” button
+   - Auth0 hosts the login / signup experience
+   - Auth0 redirects back to `/callback`
+   - Successful logins store the Auth0 user profile in the Flask session
 
-```bash
-python app.py
-```
+## 🔧 Implementation Notes
 
-Navigate to `http://localhost:5000` and click "Login with Auth0"
+- `auth0_manager.py` wraps Auth0’s OpenID Connect flow using `authlib`.
+- Routes protected with `@login_required` ensure the user is in session.
+- There is **no** local database or role management logic – manage roles in the Auth0 dashboard if you need them.
+- `logout()` clears the local session and redirects to Auth0’s universal logout.
 
-## Authentication Flow
+## 📁 Key Files
 
-1. User clicks **Login**
-2. Redirected to Auth0 login page
-3. User authenticates (social login, email/password, etc.)
-4. Auth0 redirects back to `/callback` with authorization code
-5. Application exchanges code for user info
-6. User session is created
-7. User is redirected to dashboard
+- `app.py` – Flask routes (`/`, `/login`, `/callback`, `/dashboard`, `/upload`, `/admin`, `/logout`)
+- `auth0_manager.py` – Auth0 OAuth client wrapper
+- `templates/` – Tailwind-based pages for index, login, dashboard, admin, upload
+- `env_template.txt` – Auth0 configuration placeholders
 
-## Features
+## ✅ Security Checklist
 
-- **Secure authentication** via Auth0
-- **Multiple login methods** (social, email, password)
-- **User profile management**
-- **Session management**
-- **Secure logout**
-
-## Troubleshooting
-
-### "Callback URL mismatch" error
-- Verify your callback URL in Auth0 matches exactly what's in your code
-- Check for trailing slashes
-
-### "Invalid client secret" error
-- Verify your `.env` file has the correct Client Secret
-- Make sure there are no extra spaces or quotes
-
-### Session not persisting
-- Check that SECRET_KEY is set in `.env`
-- Verify Flask session configuration
-
-## Security Notes
-
-- Never commit your `.env` file to version control
-- Keep your Client Secret secure
+- Keep `SECRET_KEY` private and random
+- Never commit `.env` files
+- Configure allowed callback/logout URLs in Auth0
 - Use HTTPS in production
-- Regularly rotate secrets
 
-## Additional Resources
+## 📱 Mobile App Authentication
 
-- [Auth0 Documentation](https://auth0.com/docs)
-- [Flask Documentation](https://flask.palletsprojects.com/)
-- [Authlib Documentation](https://docs.authlib.org/)
+The mobile app uses separate API endpoints that work independently of the web OAuth flow:
+
+- **`POST /api/login`** - Authenticate with email/password
+- **`POST /api/register`** - Create new user account
+
+These endpoints use:
+- Auth0 **Resource Owner Password Grant** for login
+- Auth0 **Management API** for user registration
+
+### Mobile Auth Setup
+
+1. **Enable Resource Owner Password Grant in Auth0:**
+   - Go to Auth0 Dashboard → Applications → Your App → Settings
+   - Scroll to "Advanced Settings" → "Grant Types"
+   - Enable "Password" grant type
+   - Click "Save Changes"
+
+2. **Enable Management API (for user registration):**
+   - The Management API is automatically available
+   - No additional setup needed (uses client credentials)
+
+3. **Mobile endpoints format:**
+
+   **Login:**
+   ```json
+   POST /api/login
+   {
+     "email": "user@example.com",
+     "password": "password123"
+   }
+   ```
+
+   **Register:**
+   ```json
+   POST /api/register
+   {
+     "email": "user@example.com",
+     "password": "password123",
+     "name": "John Doe"  // optional
+   }
+   ```
+
+   **Response:**
+   ```json
+   {
+     "access_token": "...",
+     "id_token": "...",
+     "user": {
+       "sub": "auth0|...",
+       "name": "John Doe",
+       "email": "user@example.com",
+       "picture": null
+     }
+   }
+   ```
+
+### Important Notes
+
+- Mobile authentication uses **username/password** flow (different from web OAuth)
+- Both systems share the same Auth0 user database
+- Users created via mobile can login on web (and vice versa)
+- The web OAuth flow (`/login`, `/callback`) remains unchanged
+
+## 🔮 Future Ideas
+
+- Hook Auth0 roles/app_metadata to control access to the admin dashboard
+- Connect Auth0 Management API for richer user insights
+- Replace the mock classification UI with the real ML model when it’s ready
+
+Your web app now uses a clean, single-auth provider setup powered by Auth0. 🎉
 

@@ -1,18 +1,15 @@
 # Auth0 Configuration
-AUTH0_DOMAIN=your-auth0-domain.us.auth0.com
+# Get these values from your Auth0 dashboard: https://manage.auth0.com/
+AUTH0_DOMAIN=your-auth0-domain.auth0.com
 AUTH0_CLIENT_ID=your-auth0-client-id
 AUTH0_CLIENT_SECRET=your-auth0-client-secret
 
-# Flask Secret Key (generate a random secret key)
+# Flask Configuration
 SECRET_KEY=your-secret-key-here
 
-# Environment
-FLASK_ENV=development
-FLASK_DEBUG=1
-
 # Instructions:
-# 1. Create a new file named '.env' in the web folder
-# 2. Copy all the content from this file
-# 3. Replace the placeholder values with your actual Auth0 credentials
-# 4. Generate a secure SECRET_KEY (you can use: python -c "import secrets; print(secrets.token_hex(32))")
+# 1. Copy this file to .env (remove the .template extension)
+# 2. Replace the placeholder values with your actual Auth0 credentials
+# 3. Generate a secure SECRET_KEY for Flask sessions
+# 4. Never commit the .env file to version control
 

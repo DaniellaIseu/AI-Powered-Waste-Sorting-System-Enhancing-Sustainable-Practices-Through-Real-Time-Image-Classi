@@ -1,56 +1,108 @@
-from urllib.parse import quote_plus, urlencode
 from authlib.integrations.flask_client import OAuth
+from flask import url_for
 import os
-from flask import session, redirect, url_for
-from functools import wraps
+from dotenv import load_dotenv
+from urllib.parse import urlencode
+from pathlib import Path
+
+# Load .env from root directory (parent of web/)
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 class Auth0Manager:
-    def __init__(self, app):
-        self.app = app
+    def __init__(self, app=None):
         self.oauth = OAuth(app)
+        if app:
+            self.init_app(app)
+    
+    def init_app(self, app):
+        auth0_domain = os.getenv('AUTH0_DOMAIN')
+        client_id = os.getenv('AUTH0_CLIENT_ID')
+        client_secret = os.getenv('AUTH0_CLIENT_SECRET')
         
-        auth0_domain = os.getenv('AUTH0_DOMAIN', 'dev-example.us.auth0.com')
-        client_id = os.getenv('AUTH0_CLIENT_ID', 'your-client-id')
-        client_secret = os.getenv('AUTH0_CLIENT_SECRET', 'your-client-secret')
+        if not auth0_domain or not client_id or not client_secret:
+            raise ValueError(
+                "Auth0 configuration missing. Please set AUTH0_DOMAIN, "
+                "AUTH0_CLIENT_ID, and AUTH0_CLIENT_SECRET in your .env file"
+            )
         
-        self.auth0_oauth = self.oauth.register(
-            'auth0',
+        self.oauth.register(
+            name='auth0',
             client_id=client_id,
             client_secret=client_secret,
             client_kwargs={
                 'scope': 'openid profile email',
             },
             server_metadata_url=f'https://{auth0_domain}/.well-known/openid-configuration',
-            base_url=f'https://{auth0_domain}',
+            # Disable strict time validation to handle clock skew
+            fetch_token=lambda: None,  # Don't fetch token on registration
         )
         
-        self.auth0_domain = auth0_domain
+        # Configure the client to be lenient with time validation
+        # This helps with clock synchronization issues between local server and Auth0
+        if hasattr(self.oauth.auth0, 'client'):
+            # Set leeway for token validation (60 seconds)
+            self.oauth.auth0.client.leeway = 60
     
     def login(self):
-        """Initiate Auth0 login flow"""
-        callback_url = url_for('auth_callback', _external=True)
-        return self.auth0_oauth.authorize_redirect(callback_url)
+        """Initiate Auth0 login redirect"""
+        return self.oauth.auth0.authorize_redirect(
+            redirect_uri=url_for('auth_callback', _external=True)
+        )
     
     def handle_callback(self):
-        """Handle Auth0 callback and return user info"""
-        token = self.auth0_oauth.authorize_access_token()
-        user_info = token['userinfo']
-        return user_info
+        """Handle Auth0 callback and retrieve user info"""
+        try:
+            token = self.oauth.auth0.authorize_access_token()
+            
+            # Log token structure for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Token keys: {token.keys() if token else 'No token'}")
+            
+            # Try different ways to get user info
+            user_info = token.get('userinfo')
+            
+            # If userinfo is not in token, try to fetch it from the token endpoint
+            if not user_info:
+                # Check if user info is in the token itself
+                if 'sub' in token or 'email' in token:
+                    user_info = {
+                        'sub': token.get('sub'),
+                        'email': token.get('email'),
+                        'name': token.get('name') or token.get('email', '').split('@')[0],
+                        'picture': token.get('picture'),
+                        'nickname': token.get('nickname'),
+                    }
+                else:
+                    # Fetch user info from Auth0
+                    from flask import current_app
+                    import requests
+                    auth0_domain = os.getenv('AUTH0_DOMAIN')
+                    access_token = token.get('access_token')
+                    
+                    if access_token:
+                        response = requests.get(
+                            f'https://{auth0_domain}/userinfo',
+                            headers={'Authorization': f'Bearer {access_token}'}
+                        )
+                        if response.status_code == 200:
+                            user_info = response.json()
+            
+            if not user_info:
+                raise ValueError("Could not retrieve user information from Auth0")
+            
+            return user_info
+        except Exception as e:
+            import logging
+            import traceback
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in handle_callback: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise
     
     def logout(self):
-        """Logout and clear session"""
-        session.clear()
-        
-        # Construct Auth0 logout URL
-        logout_url = (
-            f"https://{self.auth0_domain}/v2/logout?"
-            + urlencode(
-                {
-                    "returnTo": url_for('index', _external=True),
-                    "client_id": os.getenv('AUTH0_CLIENT_ID', 'your-client-id'),
-                },
-                quote_via=quote_plus,
-            )
-        )
-        return logout_url
-
+        return f"https://{os.getenv('AUTH0_DOMAIN')}/v2/logout?" + urlencode({
+            'returnTo': url_for('index', _external=True),
+            'client_id': os.getenv('AUTH0_CLIENT_ID'),
+        })
