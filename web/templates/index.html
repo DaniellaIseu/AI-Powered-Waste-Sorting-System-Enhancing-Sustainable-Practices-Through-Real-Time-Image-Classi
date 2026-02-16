@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Sorter - Modern Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-4xl w-full">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="text-6xl mb-4">♻️</div>
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">AI Waste Sorter</h1>
+            <p class="text-xl text-gray-600">Modern authentication meets sustainable waste management</p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center">
+                <div class="text-3xl text-green-500 mb-4">🔐</div>
+                <h3 class="font-semibold text-lg mb-2">Secure Login</h3>
+                <p class="text-gray-600">Enterprise-grade authentication with social providers</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center">
+                <div class="text-3xl text-blue-500 mb-4">🤖</div>
+                <h3 class="font-semibold text-lg mb-2">AI Classification</h3>
+                <p class="text-gray-600">Smart waste detection using computer vision</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg text-center">
+                <div class="text-3xl text-orange-500 mb-4">🌍</div>
+                <h3 class="font-semibold text-lg mb-2">Eco Impact</h3>
+                <p class="text-gray-600">Track your environmental contribution</p>
+            </div>
+        </div>
+
+        <!-- Login Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md mx-auto">
+            <h2 class="text-2xl font-bold text-center mb-6">Get Started</h2>
+            <p class="text-gray-600 text-center mb-6">Sign in to start waste sorting</p>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <a href="{{ url_for('login') }}" 
+               class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition duration-200 mb-4">
+                <i class="fas fa-sign-in-alt mr-3"></i>
+                Continue with Auth0
+            </a>
+
+            <div class="text-center text-sm text-gray-500 mt-4">
+                <p>Secure • Fast • No password setup required</p>
+            </div>
+        </div>
+
+        <!-- Demo Info -->
+        <div class="text-center mt-8 text-gray-500">
+            <p>Powered by Auth0 • Built for Kenyan markets • Sustainable technology</p>
+        </div>
+    </div>
+</body>
+</html>

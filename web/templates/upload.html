@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Waste Image - Waste Sorter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="text-2xl">♻️</div>
+                    <span class="font-bold text-xl text-gray-800">Waste Sorter</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('dashboard') }}" 
+                       class="text-gray-700 hover:text-gray-900 transition duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('logout') }}" 
+                       class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto py-8 px-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">📸 Upload Waste Image</h1>
+            <p class="text-lg text-gray-600">Upload an image of waste to get AI-powered classification</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Mode Toggle -->
+            <div class="mb-6 flex justify-center">
+                <div class="inline-flex bg-gray-100 rounded-lg p-1">
+                    <button type="button" id="uploadModeBtn" 
+                            class="px-6 py-2 rounded-md font-medium transition-all duration-200 bg-white shadow-sm text-gray-800">
+                        <i class="fas fa-upload mr-2"></i>Upload File
+                    </button>
+                    <button type="button" id="cameraModeBtn"
+                            class="px-6 py-2 rounded-md font-medium transition-all duration-200 text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-camera mr-2"></i>Use Camera
+                    </button>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="uploadForm" class="space-y-6">
+                <!-- File Upload Mode -->
+                <div id="uploadMode" class="space-y-6">
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 transition duration-200">
+                        <div class="text-4xl text-gray-400 mb-4">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <p class="text-lg text-gray-600 mb-4">Drag and drop your image here, or click to browse</p>
+                        <input type="file" id="imageInput" name="image" accept="image/*" class="hidden" required>
+                        <button type="button" onclick="document.getElementById('imageInput').click()"
+                                class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition duration-200">
+                            <i class="fas fa-folder-open mr-2"></i>Choose Image
+                        </button>
+                    </div>
+
+                    <div id="imagePreview" class="hidden">
+                        <h3 class="text-lg font-semibold mb-4">Image Preview:</h3>
+                        <img id="previewImg" class="max-w-full h-64 object-contain rounded-lg border" alt="Selected preview">
+                    </div>
+                </div>
+
+                <!-- Camera Mode -->
+                <div id="cameraMode" class="hidden space-y-6">
+                    <div class="relative border-2 border-gray-300 rounded-xl overflow-hidden bg-black">
+                        <video id="videoElement" autoplay playsinline class="w-full h-auto max-h-96 object-contain"></video>
+                        <canvas id="canvasElement" class="hidden"></canvas>
+                        <div id="cameraError" class="hidden p-8 text-center text-white">
+                            <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                            <p class="text-lg">Camera access denied or not available</p>
+                            <p class="text-sm mt-2">Please allow camera access or use file upload mode</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-center space-x-4">
+                        <button type="button" id="startCameraBtn"
+                                class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition duration-200">
+                            <i class="fas fa-video mr-2"></i>Start Camera
+                        </button>
+                        <button type="button" id="stopCameraBtn" class="hidden bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg transition duration-200">
+                            <i class="fas fa-stop mr-2"></i>Stop Camera
+                        </button>
+                        <button type="button" id="captureBtn" class="hidden bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition duration-200">
+                            <i class="fas fa-camera mr-2"></i>Capture Photo
+                        </button>
+                    </div>
+                    <div id="capturedPreview" class="hidden">
+                        <h3 class="text-lg font-semibold mb-4">Captured Image:</h3>
+                        <img id="capturedImg" class="max-w-full h-64 object-contain rounded-lg border" alt="Captured preview">
+                        <div class="mt-4 flex justify-center space-x-4">
+                            <button type="button" id="retakeBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition duration-200">
+                                <i class="fas fa-redo mr-2"></i>Retake
+                            </button>
+                        </div>
+                    </div>
+                    <input type="file" id="capturedImageInput" name="image" accept="image/*" class="hidden">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" id="submitBtn"
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-magic mr-2"></i>Classify Waste
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if result %}
+        <div class="mt-8 bg-white rounded-2xl shadow-xl p-8">
+            <h3 class="text-xl font-semibold mb-4">Latest Classification</h3>
+            <div class="flex items-center space-x-6">
+                {% if filename %}
+                <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Classified item"
+                     class="w-32 h-32 object-cover rounded-xl border">
+                {% endif %}
+                <div>
+                    <p class="text-2xl font-bold text-gray-800 capitalize">{{ result.label }}</p>
+                    <p class="text-gray-600 mb-2">Confidence: {{ (result.confidence * 100) | round(0) if result.confidence <= 1 else result.confidence }}%</p>
+                    <span class="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                        <i class="fas fa-lightbulb mr-2"></i>{{ result.guidance }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+ 
+        <!-- Instructions -->
+        <div class="mt-8 bg-blue-50 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-blue-800 mb-3">📋 Instructions:</h3>
+            <ul class="text-blue-700 space-y-2">
+                <li>• <strong>Upload Mode:</strong> Drag and drop images or click to browse files</li>
+                <li>• <strong>Camera Mode:</strong> Click "Start Camera" to use your webcam, then capture a photo</li>
+                <li>• Supported formats: JPG, PNG, GIF</li>
+                <li>• Maximum file size: 10MB</li>
+                <li>• Ensure good lighting for better accuracy</li>
+                <li>• Hold items steady when using camera for best results</li>
+            </ul>
+        </div>
+
+        <div class="mt-8 bg-white rounded-2xl shadow-xl p-8">
+            <h3 class="text-xl font-semibold mb-4">Live Classification Stats</h3>
+            <div class="grid md:grid-cols-3 gap-6" id="statsContainer">
+                <div class="text-center p-6 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600" data-stat="total_items">{{ stats.total_items if stats else 0 }}</div>
+                    <div class="text-sm text-gray-600">Total Items Classified</div>
+                </div>
+                <div class="text-center p-6 bg-teal-50 rounded-lg">
+                    <div class="text-2xl font-bold text-teal-600" data-stat="metrics.recycling_rate">{{ metrics.recycling_rate if metrics else 0 }}</div>
+                    <div class="text-sm text-gray-600">Recycling Rate (%)</div>
+                </div>
+                <div class="text-center p-6 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-600" data-stat="categories.plastic">{{ stats.categories.plastic if stats else 0 }}</div>
+                    <div class="text-sm text-gray-600">Plastic</div>
+                </div>
+                <div class="text-center p-6 bg-yellow-50 rounded-lg">
+                    <div class="text-2xl font-bold text-yellow-600" data-stat="categories.organic">{{ stats.categories.organic if stats else 0 }}</div>
+                    <div class="text-sm text-gray-600">Organic</div>
+                </div>
+            </div>
+            <div class="mt-6 grid md:grid-cols-3 gap-6">
+                <div class="text-center p-6 bg-purple-50 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-600" data-stat="categories.glass">{{ stats.categories.glass if stats else 0 }}</div>
+                    <div class="text-sm text-gray-600">Glass</div>
+                </div>
+                <div class="text-center p-6 bg-orange-50 rounded-lg">
+                    <div class="text-2xl font-bold text-orange-600" data-stat="categories.metal">{{ stats.categories.metal if stats else 0 }}</div>
+                    <div class="text-sm text-gray-600">Metal</div>
+                </div>
+                <div class="text-center p-6 bg-gray-100 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-700" data-stat="categories.paper">{{ stats.categories.paper if stats else 0 }}</div>
+                    <div class="text-sm text-gray-600">Paper</div>
+                </div>
+            </div>
+
+            {% if stats.recent %}
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold mb-3">Recent Classifications</h4>
+                <ul class="divide-y divide-gray-200" id="recentList">
+                    {% for item in stats.recent %}
+                    <li class="py-3 flex items-center justify-between">
+                        <span class="capitalize text-gray-800">{{ item.label }}</span>
+                        <span class="text-sm text-gray-500">{{ item.confidence }} • {{ item.timestamp }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Stats refresh functionality
+        const statElements = document.querySelectorAll('[data-stat]');
+        const recentList = document.getElementById('recentList');
+
+        // Mode switching
+        const uploadModeBtn = document.getElementById('uploadModeBtn');
+        const cameraModeBtn = document.getElementById('cameraModeBtn');
+        const uploadMode = document.getElementById('uploadMode');
+        const cameraMode = document.getElementById('cameraMode');
+        let currentMode = 'upload';
+
+        // File upload elements
+        const imageInput = document.getElementById('imageInput');
+        const previewImg = document.getElementById('previewImg');
+        const imagePreview = document.getElementById('imagePreview');
+
+        // Camera elements
+        const videoElement = document.getElementById('videoElement');
+        const canvasElement = document.getElementById('canvasElement');
+        const startCameraBtn = document.getElementById('startCameraBtn');
+        const stopCameraBtn = document.getElementById('stopCameraBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const capturedPreview = document.getElementById('capturedPreview');
+        const capturedImg = document.getElementById('capturedImg');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const capturedImageInput = document.getElementById('capturedImageInput');
+        const cameraError = document.getElementById('cameraError');
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadForm = document.getElementById('uploadForm');
+
+        let stream = null;
+        let capturedImageBlob = null;
+
+        // Mode switching
+        uploadModeBtn.addEventListener('click', () => {
+            if (currentMode === 'camera') {
+                stopCamera();
+            }
+            switchMode('upload');
+        });
+
+        cameraModeBtn.addEventListener('click', () => {
+            switchMode('camera');
+        });
+
+        function switchMode(mode) {
+            currentMode = mode;
+            if (mode === 'upload') {
+                uploadMode.classList.remove('hidden');
+                cameraMode.classList.add('hidden');
+                uploadModeBtn.classList.add('bg-white', 'shadow-sm', 'text-gray-800');
+                uploadModeBtn.classList.remove('text-gray-600');
+                cameraModeBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-800');
+                cameraModeBtn.classList.add('text-gray-600');
+                // Switch active input
+                imageInput.required = true;
+                capturedImageInput.required = false;
+                capturedImageInput.name = '';
+                imageInput.name = 'image';
+                updateSubmitButton();
+            } else {
+                uploadMode.classList.add('hidden');
+                cameraMode.classList.remove('hidden');
+                cameraModeBtn.classList.add('bg-white', 'shadow-sm', 'text-gray-800');
+                cameraModeBtn.classList.remove('text-gray-600');
+                uploadModeBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-800');
+                uploadModeBtn.classList.add('text-gray-600');
+                // Switch active input
+                imageInput.required = false;
+                capturedImageInput.required = true;
+                imageInput.name = '';
+                capturedImageInput.name = 'image';
+                updateSubmitButton();
+            }
+        }
+
+        // File upload handling
+        if (imageInput && previewImg && imagePreview) {
+            imageInput.addEventListener('change', (event) => {
+                const [file] = event.target.files;
+                if (!file) {
+                    imagePreview.classList.add('hidden');
+                    previewImg.src = '';
+                    updateSubmitButton();
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (loadEvent) => {
+                    previewImg.src = loadEvent.target.result;
+                    imagePreview.classList.remove('hidden');
+                    updateSubmitButton();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Camera functionality
+        startCameraBtn.addEventListener('click', startCamera);
+        stopCameraBtn.addEventListener('click', stopCamera);
+        captureBtn.addEventListener('click', capturePhoto);
+        retakeBtn.addEventListener('click', retakePhoto);
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'user', // Use front camera (for laptops/webcams)
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                videoElement.srcObject = stream;
+                videoElement.classList.remove('hidden');
+                cameraError.classList.add('hidden');
+                startCameraBtn.classList.add('hidden');
+                stopCameraBtn.classList.remove('hidden');
+                captureBtn.classList.remove('hidden');
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                videoElement.classList.add('hidden');
+                cameraError.classList.remove('hidden');
+                startCameraBtn.classList.remove('hidden');
+                stopCameraBtn.classList.add('hidden');
+                captureBtn.classList.add('hidden');
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            videoElement.srcObject = null;
+            videoElement.classList.add('hidden');
+            cameraError.classList.add('hidden');
+            startCameraBtn.classList.remove('hidden');
+            stopCameraBtn.classList.add('hidden');
+            captureBtn.classList.add('hidden');
+            capturedPreview.classList.add('hidden');
+            capturedImageInput.value = '';
+            capturedImageBlob = null;
+            updateSubmitButton();
+        }
+
+        function capturePhoto() {
+            if (!videoElement || !stream) return;
+
+            const context = canvasElement.getContext('2d');
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            context.drawImage(videoElement, 0, 0);
+
+            // Convert canvas to blob
+            canvasElement.toBlob((blob) => {
+                if (blob) {
+                    capturedImageBlob = blob;
+                    const url = URL.createObjectURL(blob);
+                    capturedImg.src = url;
+                    capturedPreview.classList.remove('hidden');
+
+                    // Create a File object from blob and set it to the input
+                    const file = new File([blob], 'captured-image.jpg', { type: 'image/jpeg' });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    capturedImageInput.files = dataTransfer.files;
+
+                    updateSubmitButton();
+                }
+            }, 'image/jpeg', 0.95);
+        }
+
+        function retakePhoto() {
+            capturedPreview.classList.add('hidden');
+            capturedImageInput.value = '';
+            capturedImageBlob = null;
+            updateSubmitButton();
+        }
+
+        function updateSubmitButton() {
+            if (currentMode === 'upload') {
+                submitBtn.disabled = !imageInput.files.length;
+            } else {
+                submitBtn.disabled = !capturedImageBlob;
+            }
+        }
+
+        // Form submission - ensure correct input is used
+        uploadForm.addEventListener('submit', (e) => {
+            if (currentMode === 'camera' && !capturedImageBlob) {
+                e.preventDefault();
+                alert('Please capture a photo first');
+                return false;
+            }
+            if (currentMode === 'upload' && !imageInput.files.length) {
+                e.preventDefault();
+                alert('Please select an image first');
+                return false;
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+
+        // Stats refresh
+        async function refreshStats() {
+            try {
+                const res = await fetch("{{ url_for('api_stats') }}");
+                if (!res.ok) return;
+                const data = await res.json();
+                statElements.forEach((node) => {
+                    const path = node.getAttribute('data-stat');
+                    const value = path.split('.').reduce((acc, key) => (acc ? acc[key] : 0), data);
+                    node.textContent = value ?? 0;
+                });
+                if (recentList && Array.isArray(data.recent)) {
+                    recentList.innerHTML = data.recent.slice(0, 10).map(item => `
+                        <li class="py-3 flex items-center justify-between">
+                            <span class="capitalize text-gray-800">${item.label}</span>
+                            <span class="text-sm text-gray-500">${item.confidence} • ${item.timestamp}</span>
+                        </li>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Failed to refresh stats', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshStats();
+            setInterval(refreshStats, 15000);
+            updateSubmitButton();
+        });
+    </script>
+</body>
+</html>
